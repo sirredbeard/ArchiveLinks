@@ -10,9 +10,27 @@ class Program
 
     static async Task Main(string[] args)
     {
-        string baseUrl = "https://www.determined.ai/blog/";
-        var links = await GetLinksAsync(baseUrl);
-        foreach (var link in links)
+        var baseUrls = new List<string> { "https://www.determined.ai/blog/" };
+        for (int i = 2; i <= 12; i++)
+        {
+            baseUrls.Add($"https://www.determined.ai/{i}/blog/");
+        }
+
+        var allLinks = new List<string>();
+        foreach (var baseUrl in baseUrls)
+        {
+            try
+            {
+                var links = await GetLinksAsync(baseUrl);
+                allLinks.AddRange(links);
+            }
+            catch (HttpRequestException e)
+            {
+                Console.WriteLine($"Failed to fetch links from {baseUrl}: {e.Message}");
+            }
+        }
+
+        foreach (var link in allLinks)
         {
             await SubmitToArchiveAsync(link);
         }
