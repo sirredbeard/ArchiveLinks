@@ -8,7 +8,7 @@ class Program
 {
     private static readonly HttpClient client = new HttpClient
     {
-        Timeout = TimeSpan.FromMinutes(2) // Increase timeout duration
+        Timeout = TimeSpan.FromMinutes(2)
     };
 
     static async Task Main(string[] args)
@@ -19,13 +19,16 @@ class Program
             baseUrls.Add($"https://www.determined.ai/{i}/blog/");
         }
 
-        var allLinks = new List<string>();
+        var allLinks = new HashSet<string>();
         foreach (var baseUrl in baseUrls)
         {
             try
             {
                 var links = await GetLinksAsync(baseUrl);
-                allLinks.AddRange(links);
+                foreach (var link in links)
+                {
+                    allLinks.Add(link);
+                }
             }
             catch (HttpRequestException e)
             {
