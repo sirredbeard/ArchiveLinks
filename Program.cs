@@ -6,7 +6,10 @@ using HtmlAgilityPack;
 
 class Program
 {
-    private static readonly HttpClient client = new HttpClient();
+    private static readonly HttpClient client = new HttpClient
+    {
+        Timeout = TimeSpan.FromMinutes(2) // Increase timeout duration
+    };
 
     static async Task Main(string[] args)
     {
@@ -28,11 +31,26 @@ class Program
             {
                 Console.WriteLine($"Failed to fetch links from {baseUrl}: {e.Message}");
             }
+            catch (TaskCanceledException e)
+            {
+                Console.WriteLine($"Request to {baseUrl} timed out: {e.Message}");
+            }
         }
 
         foreach (var link in allLinks)
         {
-            await SubmitToArchiveAsync(link);
+            try
+            {
+                await SubmitToArchiveAsync(link);
+            }
+            catch (HttpRequestException e)
+            {
+                Console.WriteLine($"Failed to submit {link}: {e.Message}");
+            }
+            catch (TaskCanceledException e)
+            {
+                Console.WriteLine($"Submission of {link} timed out: {e.Message}");
+            }
         }
     }
 
