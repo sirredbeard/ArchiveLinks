@@ -13,31 +13,27 @@ class Program
 
     static async Task Main(string[] args)
     {
-        var baseUrls = new List<string> { "https://www.determined.ai/blog/" };
-        for (int i = 2; i <= 12; i++)
-        {
-            baseUrls.Add($"https://www.determined.ai/{i}/blog/");
-        }
-
+        var baseUrl = "https://www.determined.ai";
         var allLinks = new HashSet<string>();
-        foreach (var baseUrl in baseUrls)
+
+        try
         {
-            try
+            var links = await GetLinksAsync(baseUrl);
+            foreach (var link in links)
             {
-                var links = await GetLinksAsync(baseUrl);
-                foreach (var link in links)
+                if (!link.Contains("/blog/"))
                 {
                     allLinks.Add(link);
                 }
             }
-            catch (HttpRequestException e)
-            {
-                Console.WriteLine($"Failed to fetch links from {baseUrl}: {e.Message}");
-            }
-            catch (TaskCanceledException e)
-            {
-                Console.WriteLine($"Request to {baseUrl} timed out: {e.Message}");
-            }
+        }
+        catch (HttpRequestException e)
+        {
+            Console.WriteLine($"Failed to fetch links from {baseUrl}: {e.Message}");
+        }
+        catch (TaskCanceledException e)
+        {
+            Console.WriteLine($"Request to {baseUrl} timed out: {e.Message}");
         }
 
         foreach (var link in allLinks)
@@ -67,7 +63,7 @@ class Program
         foreach (var link in doc.DocumentNode.SelectNodes("//a[@href]"))
         {
             var href = link.GetAttributeValue("href", string.Empty);
-            if (href.StartsWith("/blog/"))
+            if (!string.IsNullOrEmpty(href) && href.StartsWith("/"))
             {
                 links.Add("https://www.determined.ai" + href);
             }
